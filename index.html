@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Index</title>
+  <style>
+    .window {
+      width: 500px;
+      height: 350px;
+      position: absolute;
+      background-color: #f0f0f0;
+      border: 2px solid #888;
+      border-radius: 6px;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+      cursor: move;
+      user-select: none;
+      padding: 10px;
+      overflow: auto;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="window" style="top: 100px; left: 100px;">
+    <h3>Simple todo application</h3>
+    <div class="content">
+      <input type='text' placeholder="todo" id='todo-input'/>
+      <button id='todo-submit'>submit</button>
+
+      <div>
+        <ul id='todo-list'></ul>
+      </div>
+    </div>
+  </div>
+  <div class="window" style="top: 300px; left: 300px;">
+    <h3>Simple counter application</h3>
+    <div class="content">
+      <button id='d'>decrease</button>
+      <h4 id='counter-text'></h4>
+      <button id='i'>increase</button>
+    </div>
+  </div>
+  <div class="window" style="top: 500px; left: 500px;">
+    <h3>Simple joke generator</h3>
+    <div id="joke"></div>
+  </div>
+
+  <script>
+    let currentDrag = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    // Dragging logic
+    document.querySelectorAll('.window').forEach(win => {
+      win.addEventListener('mousedown', (e) => {
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+        currentDrag = win;
+        offsetX = e.clientX - win.offsetLeft;
+        offsetY = e.clientY - win.offsetTop;
+
+        document.querySelectorAll('.window').forEach(w => w.style.zIndex = 0);
+        win.style.zIndex = 10;
+      });
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!currentDrag) return;
+
+      const winWidth = currentDrag.offsetWidth;
+      const winHeight = currentDrag.offsetHeight;
+      const maxX = window.innerWidth - winWidth;
+      const maxY = window.innerHeight - winHeight;
+
+      let newLeft = e.clientX - offsetX;
+      let newTop = e.clientY - offsetY;
+
+      currentDrag.style.left = clamp(newLeft, 0, maxX) + 'px';
+      currentDrag.style.top = clamp(newTop, 0, maxY) + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      currentDrag = null;
+    });
+  </script>
+  <script>
+      const TODO_INPUT = document.getElementById('todo-input')
+      const TODO_SUBMIT = document.getElementById('todo-submit')
+      const TODO_LIST = document.getElementById('todo-list')
+
+      let TODOS = ['todo 1']
+
+      function renderTodos() {
+        TODO_LIST.innerHTML = ''
+         TODOS.forEach(t => {
+            const listItem = document.createElement('li');
+            listItem.textContent = t;
+            TODO_LIST.appendChild(listItem);
+
+            TODO_INPUT.value = '';
+        })
+      }
+
+      TODO_SUBMIT.addEventListener('click', () => {
+        if(TODO_INPUT.value !== '') {
+          TODOS.push(TODO_INPUT.value)
+          renderTodos()
+        }
+      })
+
+      document.addEventListener('DOMContentLoaded', () => {
+        renderTodos()
+      })
+  </script>
+  <script>
+    let count = 0;
+    const COUNTER_TEXT = document.getElementById('counter-text')
+    const DECREASE = document.getElementById('d')
+    const INCREASE = document.getElementById('i')
+
+    function renderCount() {
+      COUNTER_TEXT.innerHTML = `Count: ${count}`
+    }
+
+    DECREASE.addEventListener('click', () => {count--; renderCount()})
+    INCREASE.addEventListener('click', () => {count++; renderCount()})
+
+    document.addEventListener('DOMContentLoaded', () => {
+      COUNTER_TEXT.innerHTML = `Count: ${count}`
+    })
+  </script>
+  <script>
+    const JOKE_TEXT = document.getElementById('joke')
+
+    async function getJoke() {
+      const joke = await fetch('https://api.chucknorris.io/jokes/random')
+      const res = await joke.json()
+      
+      const jokeLi = document.createElement('li')
+      jokeLi.textContent = res.value;
+
+      JOKE_TEXT.appendChild(jokeLi)
+    }
+
+    setInterval(() => {
+      getJoke()
+    }, 5000)
+  </script>
+</body>
+</html>
